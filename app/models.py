@@ -6,7 +6,7 @@ from .database import Base
 
 
 class Scrim(Base):
-    __tablename__ = "open_lobbies"
+    __tablename__ = "scrims"
 
     id = Column(Integer, primary_key=True, nullable=False)
     title = Column(String, nullable=False, unique=True)

@@ -5,9 +5,12 @@ from app.database import engine, Base
 from app.config import settings
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
+origins = [
+
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
