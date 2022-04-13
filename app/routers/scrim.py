@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from .. database import get_db
 from typing import Optional
 router = APIRouter(
-    prefix="/scrims",
-    tags=['Scrims']
+    prefix="/reenit",
+    tags=['Reenit']
 )
 
 
@@ -20,9 +20,12 @@ def get_scrims(db: Session = Depends(get_db), lobby: Optional[str] = ""):
     return scrim_query
 
 
-@ router.post("/create", status_code=status.HTTP_201_CREATED)
-def create_scrim(scrim: schemas.ScrimBase, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    new_scrim = models.Scrim(owner_id=current_user.id, **scrim.dict())
+@ router.post("/scrims/{title}", status_code=status.HTTP_201_CREATED)
+def create_scrim(title: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    if current_user == None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
+    new_scrim = models.Scrim(owner_id=current_user.id, title=title)
     if not new_scrim:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="scrim could not be created")
@@ -46,16 +49,19 @@ def create_scrim(scrim: schemas.ScrimBase, db: Session = Depends(get_db), curren
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"{error}")
 
 
-@ router.post("/join", status_code=status.HTTP_200_OK)
+@ router.post("/scrim/{lobby}", status_code=status.HTTP_200_OK)
 def join_scrim(lobby: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    lobby_query = db.query(models.Active).filter(
+    if current_user == None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
+    active_query = db.query(models.Active).filter(
         models.Active.title.contains(lobby))
     lobby_query = db.query(models.Scrim).filter(
         models.Scrim.title == lobby)
     if not lobby_query.first() or len(lobby_query.all()) >= 5:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="no such lobby or lobby is full")
-    if lobby_query.filter(models.Active.user_id == current_user.id).first():
+    if active_query.filter(models.Active.user_id == current_user.id).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="user already in a lobby")
     new_active = models.Active(title=lobby, user_id=current_user.id)
@@ -67,6 +73,9 @@ def join_scrim(lobby: str, db: Session = Depends(get_db), current_user: int = De
 
 @router.delete("/", status_code=status.HTTP_200_OK)
 def leave_scrim(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    if current_user == None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
     lobby_query = db.query(models.Active).filter(
         models.Active.user_id == current_user.id)
     found_in = lobby_query.first()

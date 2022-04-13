@@ -24,7 +24,7 @@ class Active(Base):
     user_id = Column(Integer, ForeignKey(
         "users.id", ondelete="CASCADE"), nullable=False, primary_key=True)
     title = Column(String, ForeignKey(
-        "open_lobbies.title", ondelete="CASCADE"), nullable=False, primary_key=True)
+        "scrims.title", ondelete="CASCADE"), nullable=False, primary_key=True)
 
 
 class User(Base):
