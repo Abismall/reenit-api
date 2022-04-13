@@ -69,9 +69,9 @@ def delete_user(username: str, db: Session = Depends(get_db), active_user: int =
 
 
 @router.get("/", response_model=list[schemas.UserOut])
-def get_user(db: Session = Depends(get_db), search: Optional[str] = ""):
+def get_user(db: Session = Depends(get_db), user: Optional[str] = ""):
     user = db.query(models.User).filter(
-        models.User.username.contains(search)).all()
+        models.User.username.contains(user)).all()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"user {search} does not exist")
