@@ -3,18 +3,32 @@ name: Build and Deploy Code
 on: [push, pull_request]
 
 jobs:
-  job1:
+  build:
+    environment:
+      name: testing
     env:
-      DATHOST_USER: sebastian.seitalahti@gmail.com
-      DATHOST_PASSWORD: EqZMArAwMREg3CP
       DATABASE_HOSTNAME: localhost
       DATABASE_PORT: 5432
-      DATABASE_PASSWORD: AKIA5AKS4RPOAAND4BOF
+      DATABASE_PASSWORD: ${{secrets.DATABASE_HOSTNAME}}
       DATABASE_NAME: scrimbot
       DATABASE_USERNAME: postgres
-      SECRET_KEY: lkfs0rd350s934jjkl232dfd34f99klj324kllsdf09d3k3df4odsfifo3ju409dfskj3kl4df2s3lkj34243dsfsf09
+      SECRET_KEY: ${{secrets.SECRET_KEY}}
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: ${{secrets.DATABASE_PASSWORD}}
+          POSTGRES_DB: scrimbot_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     runs-on: ubuntu-latest
     steps:
       - name: pulling git repo
@@ -25,9 +39,9 @@ jobs:
           python-version: "3.9"
       - name: update pip
         run: python -m pip install --upgrade pip
-      - name: install dependencies
+      - name: install all dependencies
         run: pip install -r requirements.txt
       - name: test with pytest
         run: |
           pip install pytest
-          pytest /home/runner/work/reenit-api/reenit-api/tests
+          pytest
