@@ -17,6 +17,8 @@ class UpdateUser(BaseModel):
 
 class Location(BaseModel):
     active: Optional[bool]
+    location: Optional[str]
+    id: Optional[int]
 
 
 class UserOut(BaseModel):

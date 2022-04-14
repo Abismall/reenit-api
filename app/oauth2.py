@@ -29,14 +29,7 @@ def verify_access_token(token: str, credentials_exception):
         token_data = schemas.TokenData(id=id)
     except JWTError:
         raise credentials_exception
-    print(token_data)
     return token_data
-
-
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                          detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
-    return verify_access_token(token, credentials_exception)
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)):

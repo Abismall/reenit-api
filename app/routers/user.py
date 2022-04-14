@@ -23,7 +23,7 @@ def register_user(user: schemas.RegisterUser, db: Session = Depends(get_db)):
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-        return {"data": new_user.username}
+        return new_user
     except exc.IntegrityError as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -36,6 +36,9 @@ def register_user(user: schemas.RegisterUser, db: Session = Depends(get_db)):
 
 @router.put("/")
 def update_user(user: schemas.UpdateUser, db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
+    updated_user = {k: v for k, v in user.dict().items() if v is not None}
+    if not updated_user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     if active_user == None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
@@ -52,7 +55,6 @@ def update_user(user: schemas.UpdateUser, db: Session = Depends(get_db), active_
                             detail="no user(s)")
     if user.password is not None:
         user.password = utils.hash(user.password)
-    updated_user = {k: v for k, v in user.dict().items() if v is not None}
     user_query.update(updated_user, synchronize_session=False)
     db.commit()
     return Response(status_code=status.HTTP_200_OK)

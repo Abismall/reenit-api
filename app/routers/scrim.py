@@ -10,7 +10,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("/scrim")
 def get_scrims(db: Session = Depends(get_db), lobby: Optional[str] = ""):
     scrim_query = db.query(models.Scrim, func.count(models.Active.title).label("players")).join(
         models.Active, models.Active.title == models.Scrim.title, isouter=True).group_by(models.Scrim.id).filter(models.Scrim.title.contains(lobby)).all()
@@ -22,6 +22,9 @@ def get_scrims(db: Session = Depends(get_db), lobby: Optional[str] = ""):
 
 @ router.post("/scrims/{title}", status_code=status.HTTP_201_CREATED)
 def create_scrim(title: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    if not str.strip(title):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No title")
     if current_user == None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
@@ -37,7 +40,7 @@ def create_scrim(title: str, db: Session = Depends(get_db), current_user: int = 
         db.add(new_active)
         db.commit()
         db.refresh(new_scrim)
-        return {"data": new_scrim}
+        return new_scrim
     except exc.IntegrityError as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -58,9 +61,12 @@ def join_scrim(lobby: str, db: Session = Depends(get_db), current_user: int = De
         models.Active.title.contains(lobby))
     lobby_query = db.query(models.Scrim).filter(
         models.Scrim.title == lobby)
-    if not lobby_query.first() or len(lobby_query.all()) >= 5:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="no such lobby or lobby is full")
+    if not lobby_query.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="no such lobby")
+    if len(lobby_query.all()) >= 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="lobby is full")
     if active_query.filter(models.Active.user_id == current_user.id).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="user already in a lobby")
