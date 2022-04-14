@@ -10,7 +10,7 @@ jobs:
       DATABASE_HOSTNAME: localhost
       DATABASE_PORT: 5432
       DATABASE_PASSWORD: ${{secrets.DATABASE_PASSWORD}}
-      DATABASE_NAME: scrimbot
+      DATABASE_NAME: ${{secrets.DATABASE_NAME}}
       DATABASE_USERNAME: postgres
       SECRET_KEY: ${{secrets.SECRET_KEY}}
       ALGORITHM: HS256
@@ -20,8 +20,8 @@ jobs:
       postgres:
         image: postgres:11
         env:
-          POSTGRES_PASSWORD: password123
-          POSTGRES_DB: scrimbot_test
+          POSTGRES_PASSWORD: ${{secrets.DATABASE_PASSWORD}}
+          POSTGRES_DB: ${{secrets.DATABASE_NAME}}_test
         ports:
           - 5432:5432
         options: >-
