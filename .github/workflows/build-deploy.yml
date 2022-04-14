@@ -24,8 +24,6 @@ jobs:
           POSTGRES_DB: ${{secrets.DATABASE_NAME}}_test
         ports:
           - 5432:5432
-        options: >-
-
     runs-on: ubuntu-latest
     steps:
       - name: pulling git repo
