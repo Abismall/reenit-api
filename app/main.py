@@ -5,9 +5,7 @@ from app.database import engine, Base
 from app.config import settings
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
-origins = [
-
-]
+origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
