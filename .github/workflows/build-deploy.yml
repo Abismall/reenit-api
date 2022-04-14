@@ -4,6 +4,17 @@ on: [push, pull_request]
 
 jobs:
   job1:
+    env:
+      DATHOST_USER: sebastian.seitalahti@gmail.com
+      DATHOST_PASSWORD: EqZMArAwMREg3CP
+      DATABASE_HOSTNAME: localhost
+      DATABASE_PORT: 5432
+      DATABASE_PASSWORD: AKIA5AKS4RPOAAND4BOF
+      DATABASE_NAME: scrimbot
+      DATABASE_USERNAME: postgres
+      SECRET_KEY: lkfs0rd350s934jjkl232dfd34f99klj324kllsdf09d3k3df4odsfifo3ju409dfskj3kl4df2s3lkj34243dsfsf09
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
     runs-on: ubuntu-latest
     steps:
       - name: pulling git repo
@@ -19,4 +30,4 @@ jobs:
       - name: test with pytest
         run: |
           pip install pytest
-          pytest
+          pytest ./tests
