@@ -1,8 +1,8 @@
-from .. import schemas, models
+from app import schemas, models
 from fastapi import HTTPException, status, Depends, APIRouter
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
-from .. database import get_db
+from app.database import get_db
 from typing import Optional
 router = APIRouter(
     prefix="/servers",

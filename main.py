@@ -19,3 +19,8 @@ app.include_router(user.router)
 app.include_router(server.router)
 app.include_router(auth.router)
 app.include_router(scrim.router)
+
+
+@app.get("/")
+def root():
+    return {"message": "Hello, world!"}

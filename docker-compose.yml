@@ -16,7 +16,10 @@ services:
     image: postgres
     environment:
       - POSTGRES_PASSWORD=AKIA5AKS4RPOAAND4BOF
+      - POSTGRES_USER=postgres
       - POSTGRES_DB=scrimbot
+    ports:
+      - 6543:5432
     volumes:
       - postgres-db:/var/lib/postgresql/data
 
