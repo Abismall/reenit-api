@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str
     access_token_expire_minutes: int
-    dathost_user: str
+    dathost_username: str
     dathost_password: str
 
     class Config:

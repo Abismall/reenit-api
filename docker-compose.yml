@@ -4,6 +4,7 @@ services:
     build: .
     ports:
       - 8000:8000
+      
     volumes:
       - ./:/usr/src/app
     env_file:
@@ -19,7 +20,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_DB=scrimbot
     ports:
-      - 6543:5432
+      - 5443:5432
     volumes:
       - postgres-db:/var/lib/postgresql/data
 

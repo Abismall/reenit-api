@@ -79,10 +79,19 @@ def delete_user(db: Session = Depends(get_db), active_user: int = Depends(oauth2
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/", response_model=List[schemas.UserOut])
+@router.get("/{user}", response_model=List[schemas.UserOut])
 def get_user(db: Session = Depends(get_db), user: Optional[str] = ""):
     user_query = db.query(models.User).filter(
-        models.User.username.contains(user))
+        models.User.username.ilike(user))
+    if not user_query.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"no user(s)")
+    return user_query.all()
+
+
+@router.get("/", response_model=List[schemas.UserOut])
+def get_users(db: Session = Depends(get_db)):
+    user_query = db.query(models.User)
     if not user_query.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"no user(s)")

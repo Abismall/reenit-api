@@ -15,12 +15,6 @@ class UpdateUser(BaseModel):
     steam64: Optional[int]
 
 
-class Location(BaseModel):
-    active: Optional[bool]
-    location: Optional[str]
-    id: Optional[int]
-
-
 class UserOut(BaseModel):
     id: Optional[int]
     username: Optional[str]
@@ -36,11 +30,6 @@ class UserLogin(BaseModel):
     password: str
 
 
-class UserLobby(BaseModel):
-    lobby_id: int
-    lobby_owner: int
-
-
 class Token(BaseModel):
     token: str
     token_type: str
@@ -50,6 +39,20 @@ class TokenData(BaseModel):
     id: str
 
 
-class ScrimBase(BaseModel):
-    title: str
-    public: bool = True
+class Scrim(BaseModel):
+    id: Optional[int]
+    user: Optional[str]
+    action: Optional[int]
+    title: Optional[str]
+    public: Optional[bool]
+    team_one: Optional[list]
+    team_two: Optional[list]
+    lobby: Optional[list]
+
+
+class Server(BaseModel):
+    active: Optional[bool]
+    location: Optional[str]
+    id: Optional[str]
+    match_id: Optional[int]
+    players: Optional[list]
