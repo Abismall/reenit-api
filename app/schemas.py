@@ -54,5 +54,5 @@ class Server(BaseModel):
     active: Optional[bool]
     location: Optional[str]
     id: Optional[str]
-    match_id: Optional[int]
+    server_id: Optional[str]
     players: Optional[list]

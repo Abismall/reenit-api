@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from typing import Optional
 import requests
-from config import settings
+from .. config import settings
 router = APIRouter(
     prefix="/servers",
     tags=['Servers']
@@ -54,13 +54,13 @@ async def status_update(request: Request, db: Session = Depends(get_db)):
 
     if event in match_end_events:
         server_query = db.query(models.Server)
-        server_id = server_query.filter(
-            models.Server.match_id.ilike(match_id)).first()
-        if not server_id:
+        server = server_query.filter(
+            models.Server.id.ilike(match_id)).first()
+        if not server:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="could not match id with a server")
         try:
-            with requests.post(f"https://dathost.net/api/0.1/game-servers/{server_id}/stop", auth=(settings.dathost_username, settings.dathost_password)) as api_call:
+            with requests.post(f"https://dathost.net/api/0.1/game-servers/{server.server_id}/stop", auth=(settings.dathost_username, settings.dathost_password)) as api_call:
                 return api_call
         except requests.exceptions.RequestException as err:
             print(f"Requests error: {err}")

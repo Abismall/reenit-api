@@ -48,7 +48,7 @@ class User(Base):
 class Server(Base):
     __tablename__ = "servers"
     id = Column(String, primary_key=True, nullable=False)
-    match_id = Column(Integer, unique=True)
+    server_id = Column(String, unique=True)
     location = Column(String(100), nullable=False)
     active = Column(Boolean, server_default='False', nullable=False)
     players = Column(MutableList.as_mutable(PickleType),
