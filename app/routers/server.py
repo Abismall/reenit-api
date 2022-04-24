@@ -13,10 +13,9 @@ router = APIRouter(
 
 
 @router.get("/")
-def get_servers(db: Session = Depends(get_db), location: Optional[str] = ""):
+def get_servers(db: Session = Depends(get_db)):
     server_query = db.query(models.Server)
-    servers = server_query.filter(
-        models.Server.location.contains(location)).all()
+    servers = server_query.all()
     if not servers:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="no servers available")
@@ -47,11 +46,9 @@ def update_server(server: schemas.Server, db: Session = Depends(get_db)):
 async def status_update(request: Request, db: Session = Depends(get_db)):
     match_end_events = ["series_cancel"]
     data = await request.json()
+    print(data)
     match_id = data["matchid"]
-    team1_score = data["params"]["team1_series_score"]
-    team2_score = data["params"]["team2_series_score"]
-    event = data["params"]["event"]
-
+    event = data["event"]
     if event in match_end_events:
         server_query = db.query(models.Server)
         server = server_query.filter(
@@ -60,9 +57,15 @@ async def status_update(request: Request, db: Session = Depends(get_db)):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="could not match id with a server")
         try:
-            with requests.post(f"https://dathost.net/api/0.1/game-servers/{server.server_id}/stop", auth=(settings.dathost_username, settings.dathost_password)) as api_call:
-                return api_call
+            requests.post(f"https://dathost.net/api/0.1/game-servers/{server.server_id}/stop", auth=(
+                settings.dathost_username, settings.dathost_password))
         except requests.exceptions.RequestException as err:
             print(f"Requests error: {err}")
         except requests.exceptions.HTTPError as err:
             print(f"Requests error: {err}")
+        finally:
+            scrim_query = db.query(models.Scrim)
+            current_scrim = scrim_query.filter(
+                models.Scrim.id.ilike(match_id)).first()
+            scrim_query.delete(current_scrim)
+            server_query.delete(server)

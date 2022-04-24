@@ -28,6 +28,7 @@ class Active(Base):
     __tablename__ = "active users"
     user_id = Column(Integer, ForeignKey(
         "users.id", ondelete="CASCADE"), nullable=False, primary_key=True)
+    scrim_id = Column(Integer, nullable=False, unique=True)
     username = Column(String, nullable=False)
     steam64 = Column(Integer, nullable=False)
     title = Column(String, ForeignKey(
@@ -55,8 +56,8 @@ class Server(Base):
                      default=[])
 
 
-class Location(Base):
-    __tablename__ = "locations"
-    id = Column(String, primary_key=True, nullable=False)
-    location = Column(String(100), nullable=False)
-    active = Column(Boolean, server_default='False', nullable=False)
+# class Location(Base):
+#     __tablename__ = "locations"
+#     id = Column(String, primary_key=True, nullable=False)
+#     location = Column(String(100), nullable=False)
+#     active = Column(Boolean, server_default='False', nullable=False)

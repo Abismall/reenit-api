@@ -48,17 +48,19 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
             status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
     new_scrim = models.Scrim(owner_id=current_user.id,
                              title=scrim.title)
+
     if not new_scrim:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="scrim could not be created")
+
     try:
-        new_active = models.Active(
-            title=new_scrim.title, user_id=current_user.id, username=current_user.username, steam64=current_user.steam64)
         db.add(new_scrim)
         db.commit()
+        db.refresh(new_scrim)
+        new_active = models.Active(
+            title=new_scrim.title, user_id=current_user.id, username=current_user.username, steam64=current_user.steam64, scrim_id=new_scrim.id)
         db.add(new_active)
         db.commit()
-        db.refresh(new_scrim)
         return new_scrim
     except exc.IntegrityError as e:
         db.rollback()
@@ -80,7 +82,8 @@ def join_scrim(lobby: str, db: Session = Depends(get_db), current_user: int = De
         models.Active.title.contains(lobby))
     lobby_query = db.query(models.Scrim).filter(
         models.Scrim.title == lobby)
-    if not lobby_query.first():
+    current_lobby = lobby_query.first()
+    if not current_lobby:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="no such lobby")
     if len(lobby_query.all()) >= 10:
@@ -92,7 +95,7 @@ def join_scrim(lobby: str, db: Session = Depends(get_db), current_user: int = De
     user = db.query(models.User).filter(
         models.User.id == current_user.id).first()
     new_active = models.Active(
-        title=lobby, user_id=current_user.id, username=user.username)
+        title=lobby, user_id=current_user.id, username=user.username, scrim_id=current_lobby.id)
     db.add(new_active)
     db.commit()
     db.refresh(new_active)
