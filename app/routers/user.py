@@ -13,22 +13,29 @@ router = APIRouter(
 
 @router.post("/", status_code=status.HTTP_201_CREATED, )
 def register_user(user: schemas.RegisterUser, db: Session = Depends(get_db)):
+    print(user)
     hashed_password = utils.hash(user.password)
     user.password = hashed_password
+    print(hashed_password)
     new_user = models.User(**user.dict())
+    print(new_user.steam64)
     if not new_user:
+        print("THIS HAPPENED")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="User could not be created")
     try:
+        print("TRYING")
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
         return new_user
     except exc.IntegrityError as e:
+        print(e)
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="username or steamid already taken")
     except exc.SQLAlchemyError as e:
+        print(e)
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, PickleType
+from sqlalchemy import Column, Integer, String, Boolean, BigInteger, ForeignKey, PickleType
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import text
@@ -30,7 +30,7 @@ class Active(Base):
         "users.id", ondelete="CASCADE"), nullable=False, primary_key=True)
     scrim_id = Column(Integer, nullable=False, unique=True)
     username = Column(String, nullable=False)
-    steam64 = Column(Integer, nullable=False)
+    steam64 = Column(BigInteger, nullable=False)
     title = Column(String, ForeignKey(
         "scrims.title", ondelete="CASCADE"), nullable=False, primary_key=True)
 
@@ -38,7 +38,7 @@ class Active(Base):
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
-    steam64 = Column(Integer, unique=True)
+    steam64 = Column(BigInteger, unique=True)
     username = Column(String(100), nullable=False, unique=True)
     password = Column(String(200))
     public = Column(Boolean, server_default='True')
@@ -48,7 +48,7 @@ class User(Base):
 
 class Server(Base):
     __tablename__ = "servers"
-    id = Column(String, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, nullable=False)
     server_id = Column(String, unique=True)
     location = Column(String(100), nullable=False)
     active = Column(Boolean, server_default='False', nullable=False)

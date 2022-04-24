@@ -63,10 +63,12 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
         db.commit()
         return new_scrim
     except exc.IntegrityError as e:
+        print(e)
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="You can only create one lobby")
     except exc.SQLAlchemyError as e:
+        print(e)
         error = type(e)
         db.rollback()
         raise HTTPException(

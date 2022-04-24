@@ -42,17 +42,16 @@ def update_server(server: schemas.Server, db: Session = Depends(get_db)):
     return {"data": server_query.first()}
 
 
-@router.put("/status{event}")
+@router.post("/status/event")
 async def status_update(request: Request, db: Session = Depends(get_db)):
     match_end_events = ["series_cancel"]
     data = await request.json()
-    print(data)
     match_id = data["matchid"]
     event = data["event"]
     if event in match_end_events:
-        server_query = db.query(models.Server)
-        server = server_query.filter(
-            models.Server.id.ilike(match_id)).first()
+        server_query = db.query(models.Server).filter(
+            models.Server.id == int(match_id))
+        server = server_query.first()
         if not server:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="could not match id with a server")
@@ -64,8 +63,8 @@ async def status_update(request: Request, db: Session = Depends(get_db)):
         except requests.exceptions.HTTPError as err:
             print(f"Requests error: {err}")
         finally:
-            scrim_query = db.query(models.Scrim)
-            current_scrim = scrim_query.filter(
-                models.Scrim.id.ilike(match_id)).first()
-            scrim_query.delete(current_scrim)
-            server_query.delete(server)
+            scrim_query = db.query(models.Scrim).filter(
+                models.Scrim.id == int(match_id))
+            scrim_query.delete(synchronize_session=False)
+            server_query.delete(synchronize_session=False)
+            db.commit()
