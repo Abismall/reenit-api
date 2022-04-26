@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("/", status_code=status.HTTP_200_OK)
 def get_servers(db: Session = Depends(get_db)):
     server_query = db.query(models.Server)
     servers = server_query.all()
@@ -22,7 +22,7 @@ def get_servers(db: Session = Depends(get_db)):
     return servers
 
 
-@router.post("/")
+@router.post("/", status_code=status.HTTP_201_CREATED)
 def create_server(server: schemas.Server, db: Session = Depends(get_db)):
     new_server = models.Server(**server.dict())
     db.add(new_server)
@@ -30,7 +30,7 @@ def create_server(server: schemas.Server, db: Session = Depends(get_db)):
     return new_server
 
 
-@router.put("/")
+@router.put("/", status_code=status.HTTP_200_OK)
 def update_server(server: schemas.Server, db: Session = Depends(get_db)):
     server_query = db.query(models.Server).filter(
         models.Server.id == server.id)
@@ -42,10 +42,11 @@ def update_server(server: schemas.Server, db: Session = Depends(get_db)):
     return {"data": server_query.first()}
 
 
-@router.post("/status/event")
+@router.post("/status/event", status_code=status.HTTP_201_CREATED)
 async def status_update(request: Request, db: Session = Depends(get_db)):
     match_end_events = ["series_cancel"]
     data = await request.json()
+    print(data)
     match_id = data["matchid"]
     event = data["event"]
     if event in match_end_events:

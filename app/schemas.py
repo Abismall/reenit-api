@@ -15,10 +15,14 @@ class UpdateUser(BaseModel):
     steam64: Optional[int]
 
 
+class UserQuery(BaseModel):
+    username: Optional[str]
+
+
 class UserOut(BaseModel):
     id: Optional[int]
     username: Optional[str]
-    steam64: Optional[int]
+    #steam64: Optional[int]
     public: Optional[bool]
 
     class Config:
@@ -41,13 +45,22 @@ class TokenData(BaseModel):
 
 class Scrim(BaseModel):
     id: Optional[int]
-    user: Optional[str]
     action: Optional[int]
     title: Optional[str]
     public: Optional[bool]
     team_one: Optional[list]
     team_two: Optional[list]
     lobby: Optional[list]
+    captain_one: Optional[str]
+    captain_two: Optional[str]
+    current_map: Optional[str]
+    overtime: Optional[bool]
+    team_damage: Optional[bool]
+    server_id: Optional[str]
+
+
+class PostScrim(BaseModel):
+    title: str
 
 
 class Server(BaseModel):

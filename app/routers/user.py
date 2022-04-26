@@ -13,18 +13,13 @@ router = APIRouter(
 
 @router.post("/", status_code=status.HTTP_201_CREATED, )
 def register_user(user: schemas.RegisterUser, db: Session = Depends(get_db)):
-    print(user)
     hashed_password = utils.hash(user.password)
     user.password = hashed_password
-    print(hashed_password)
     new_user = models.User(**user.dict())
-    print(new_user.steam64)
     if not new_user:
-        print("THIS HAPPENED")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="User could not be created")
     try:
-        print("TRYING")
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
@@ -41,7 +36,7 @@ def register_user(user: schemas.RegisterUser, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
 
 
-@router.put("/")
+@router.put("/", status_code=status.HTTP_200_OK)
 def update_user(user: schemas.UpdateUser, db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
     updated_user = {k: v for k, v in user.dict().items() if v is not None}
     if not updated_user:
@@ -86,17 +81,18 @@ def delete_user(db: Session = Depends(get_db), active_user: int = Depends(oauth2
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/{user}", response_model=List[schemas.UserOut])
-def get_user(db: Session = Depends(get_db), user: Optional[str] = ""):
+@router.get("/user", response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
+def get_user(user: schemas.UserQuery, db: Session = Depends(get_db)):
+    print(user.username)
     user_query = db.query(models.User).filter(
-        models.User.username.ilike(user))
+        models.User.username == user.username)
     if not user_query.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"no user(s)")
-    return user_query.all()
+    return user_query.first()
 
 
-@router.get("/", response_model=List[schemas.UserOut])
+@router.get("/users", response_model=List[schemas.UserOut], status_code=status.HTTP_200_OK)
 def get_users(db: Session = Depends(get_db)):
     user_query = db.query(models.User)
     if not user_query.first():

@@ -7,7 +7,7 @@ from app.database import Base
 
 
 class Scrim(Base):
-    __tablename__ = "scrims"
+    __tablename__ = "open_scrims"
 
     id = Column(Integer, primary_key=True, nullable=False)
     title = Column(String, nullable=False, unique=True)
@@ -22,17 +22,23 @@ class Scrim(Base):
                       default=[])
     team_two = Column(MutableList.as_mutable(PickleType),
                       default=[])
+    captain_one = Column(String, nullable=True, default=None)
+    captain_two = Column(String, nullable=True, default=None)
+    current_map = Column(String, nullable=True, default=None)
+    overtime = Column(Boolean, nullable=True, default=False)
+    team_damage = Column(Boolean, nullable=True, default=True)
+    server_id = Column(String, nullable=True)
 
 
 class Active(Base):
-    __tablename__ = "active users"
+    __tablename__ = "active_users"
     user_id = Column(Integer, ForeignKey(
         "users.id", ondelete="CASCADE"), nullable=False, primary_key=True)
-    scrim_id = Column(Integer, nullable=False, unique=True)
+    scrim_id = Column(Integer, nullable=False)
     username = Column(String, nullable=False)
     steam64 = Column(BigInteger, nullable=False)
     title = Column(String, ForeignKey(
-        "scrims.title", ondelete="CASCADE"), nullable=False, primary_key=True)
+        "open_scrims.title", ondelete="CASCADE"), nullable=False, primary_key=True)
 
 
 class User(Base):
@@ -47,7 +53,7 @@ class User(Base):
 
 
 class Server(Base):
-    __tablename__ = "servers"
+    __tablename__ = "active_servers"
     id = Column(Integer, primary_key=True, nullable=False)
     server_id = Column(String, unique=True)
     location = Column(String(100), nullable=False)
