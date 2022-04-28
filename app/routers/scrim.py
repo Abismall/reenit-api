@@ -76,7 +76,6 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
             title=new_scrim.title, user_id=current_user.id, scrim_id=new_scrim.id, username=current_user.username, steam64=current_user.steam64)
         db.add(new_active)
         db.commit()
-        print(new_scrim)
         return {"detail": (new_scrim.title, current_user.username)}
     except exc.IntegrityError as e:
         print(e)
@@ -93,7 +92,6 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
 
 @ router.post("/scrim/", status_code=status.HTTP_200_OK)
 def join_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    print(scrim)
     if current_user == None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
@@ -114,7 +112,7 @@ def join_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_user
     user = db.query(models.User).filter(
         models.User.id == current_user.id).first()
     new_active = models.Active(
-        title=lobby, user_id=current_user.id, username=user.username, scrim_id=current_lobby.id, steam64=user.steam64)
+        title=scrim.title, user_id=current_user.id, username=user.username, scrim_id=current_lobby.id, steam64=user.steam64)
     db.add(new_active)
     db.commit()
     db.refresh(new_active)
@@ -122,12 +120,12 @@ def join_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_user
 
 
 @router.delete("/", status_code=status.HTTP_200_OK)
-def leave_scrim(user: schemas.UserQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def leave_scrim(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     if current_user == None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="login failure")
     lobby_query = db.query(models.Active).filter(
-        models.Active.user_id == current_user.id and models.Active.username == user.username)
+        models.Active.user_id == current_user.id)
     found_in = lobby_query.first()
     if not found_in:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,

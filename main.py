@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import user, server, auth, scrim
+from app.routers import user, server, auth, scrim, dathost
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.config import settings
@@ -17,6 +17,7 @@ app.include_router(user.router)
 app.include_router(server.router)
 app.include_router(auth.router)
 app.include_router(scrim.router)
+app.include_router(dathost.router)
 
 
 @app.get("/")

@@ -44,9 +44,8 @@ def update_server(server: schemas.Server, db: Session = Depends(get_db)):
 
 @router.post("/status/event", status_code=status.HTTP_201_CREATED)
 async def status_update(request: Request, db: Session = Depends(get_db)):
-    match_end_events = ["series_cancel"]
+    match_end_events = ["series_cancel", "series_end", "map_end"]
     data = await request.json()
-    print(data)
     match_id = data["matchid"]
     event = data["event"]
     if event in match_end_events:
