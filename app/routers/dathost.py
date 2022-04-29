@@ -1,6 +1,5 @@
-from fastapi import HTTPException, status, Request, Depends, APIRouter
-from .. utils import get_servers, start_server, server_details
-from .. config import settings
+from fastapi import HTTPException, status, APIRouter
+from .. utils import get_servers, start_server, server_details, remove_keys
 router = APIRouter(
     prefix="/dathost",
     tags=['Dathost']
@@ -18,11 +17,12 @@ async def start_dathost_server(server_id: str):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@router.get("/available/", status_code=status.HTTP_201_CREATED)
+@router.get("/available/", status_code=status.HTTP_200_OK)
 async def dathost_servers():
     available_servers = get_servers()
-    if available_servers.status_code == status.HTTP_201_CREATED:
-        return
+    if available_servers.status_code == status.HTTP_200_OK:
+        output = remove_keys(available_servers.json())
+        return output
     else:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

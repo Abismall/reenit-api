@@ -60,13 +60,10 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
         db.commit()
         db.refresh(new_scrim)
     except exc.IntegrityError as e:
-        print(e)
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="1. lobby id/title already exists\n 2. you have already created a lobby")
     except exc.SQLAlchemyError as e:
-        print(e)
-        error = type(e)
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"{error}")
@@ -78,12 +75,10 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
         db.commit()
         return {"detail": (new_scrim.title, current_user.username)}
     except exc.IntegrityError as e:
-        print(e)
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="1. you can only create one lobby\n 2. you cannot create a lobby if you are already in one")
     except exc.SQLAlchemyError as e:
-        print(e)
         error = type(e)
         db.rollback()
         raise HTTPException(
