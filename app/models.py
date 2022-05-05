@@ -44,7 +44,7 @@ class Active(Base):
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
-    steam64 = Column(BigInteger, unique=True)
+    steam64 = Column(BigInteger, unique=True, nullable=True)
     username = Column(String(100), nullable=False, unique=True)
     password = Column(String(200))
     public = Column(Boolean, server_default='True')

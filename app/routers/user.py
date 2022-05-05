@@ -11,7 +11,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED, )
+@router.post("/", response_model=schemas.UserOut, status_code=status.HTTP_201_CREATED, )
 def register_user(user: schemas.RegisterUser, db: Session = Depends(get_db)):
     hashed_password = utils.hash(user.password)
     user.password = hashed_password
@@ -36,7 +36,7 @@ def register_user(user: schemas.RegisterUser, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
 
 
-@router.put("/", status_code=status.HTTP_200_OK)
+@router.put("/", response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
 def update_user(user: schemas.UpdateUser, db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
     updated_user = {k: v for k, v in user.dict().items() if v is not None}
     if not updated_user:
@@ -59,7 +59,7 @@ def update_user(user: schemas.UpdateUser, db: Session = Depends(get_db), active_
         user.password = utils.hash(user.password)
     user_query.update(updated_user, synchronize_session=False)
     db.commit()
-    return Response(status_code=status.HTTP_200_OK)
+    return
 
 
 @router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
