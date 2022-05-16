@@ -1,17 +1,16 @@
 from .. import schemas, utils, models, oauth2
-from fastapi import FastAPI, HTTPException, Response, status, Depends, APIRouter
+from fastapi import HTTPException, Response, status, Depends, APIRouter
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 from app.database import get_db
-from typing import List, Optional
-import json
+from typing import List
 router = APIRouter(
     prefix="/users",
     tags=['Users']
 )
 
 
-@router.post("/", response_model=schemas.UserOut, status_code=status.HTTP_201_CREATED, )
+@router.post("/", response_model=schemas.UserOut, status_code=status.HTTP_201_CREATED)
 def register_user(user: schemas.RegisterUser, db: Session = Depends(get_db)):
     hashed_password = utils.hash(user.password)
     user.password = hashed_password
@@ -25,12 +24,10 @@ def register_user(user: schemas.RegisterUser, db: Session = Depends(get_db)):
         db.refresh(new_user)
         return new_user
     except exc.IntegrityError as e:
-        print(e)
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="username or steamid already taken")
     except exc.SQLAlchemyError as e:
-        print(e)
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e}")
@@ -82,20 +79,51 @@ def delete_user(db: Session = Depends(get_db), active_user: int = Depends(oauth2
 
 
 @router.get("/user", response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
-def get_user(user: schemas.UserQuery, db: Session = Depends(get_db)):
-    print(user.username)
+def get_user(db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
     user_query = db.query(models.User).filter(
-        models.User.username == user.username)
+        models.User.id == active_user.id)
+
     if not user_query.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"no user(s)")
+
     return user_query.first()
 
 
-@router.get("/users", response_model=List[schemas.UserOut], status_code=status.HTTP_200_OK)
+@ router.get("/users", response_model=List[schemas.UserOut], status_code=status.HTTP_200_OK)
 def get_users(db: Session = Depends(get_db)):
     user_query = db.query(models.User)
     if not user_query.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"no user(s)")
     return user_query.all()
+
+
+@ router.get("/user/current", status_code=status.HTTP_200_OK)
+def get_users(db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
+    user_query = db.query(models.Active).filter(
+        models.Active.user_id == active_user.id)
+    if not user_query.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"no user(s)")
+    lobby_query = db.query(models.Scrim).filter(
+        models.Scrim.title == user_query.first().title)
+    return lobby_query.first()
+
+
+@ router.put("/user/actions/scrim/", status_code=status.HTTP_200_OK)
+def switch_team(user: schemas.UserQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    updated_user = {k: v for k, v in user.dict().items() if v is not None}
+    if not updated_user:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
+    user_query = db.query(models.Active).filter(
+        models.Active.user_id == current_user.id
+    )
+    if not user_query.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Could not locate user in active games")
+    user_query.update(updated_user, synchronize_session=False)
+
+    db.commit()
+    print(user_query.first().team)
+    return

@@ -1,9 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 
 class RegisterUser(BaseModel):
-    steam64: int
+    steam64: Optional[int]
     username: str
     password: str
 
@@ -11,19 +12,20 @@ class RegisterUser(BaseModel):
 class UpdateUser(BaseModel):
     username: Optional[str]
     password: Optional[str]
-    public: Optional[bool]
+    public_state: Optional[bool]
     steam64: Optional[int]
 
 
 class UserQuery(BaseModel):
-    username: Optional[str]
+    team: Optional[int]
 
 
 class UserOut(BaseModel):
     id: Optional[int]
     username: Optional[str]
     #steam64: Optional[int]
-    public: Optional[bool]
+    public_state: Optional[bool]
+    created_at: Optional[datetime]
 
     class Config:
         orm_mode = True
@@ -47,7 +49,7 @@ class Scrim(BaseModel):
     id: Optional[int]
     action: Optional[int]
     title: Optional[str]
-    public: Optional[bool]
+    public_state: Optional[bool]
     team_one: Optional[list]
     team_two: Optional[list]
     lobby: Optional[list]
@@ -57,6 +59,7 @@ class Scrim(BaseModel):
     overtime: Optional[bool]
     team_damage: Optional[bool]
     server_id: Optional[str]
+    history: Optional[list]
 
 
 class PostScrim(BaseModel):
