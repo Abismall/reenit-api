@@ -100,30 +100,41 @@ def get_users(db: Session = Depends(get_db)):
 
 
 @ router.get("/user/current", status_code=status.HTTP_200_OK)
-def get_users(db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
+def get_current_game(db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
     user_query = db.query(models.Active).filter(
-        models.Active.user_id == active_user.id)
+        models.Active.id == active_user.id)
     if not user_query.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"no user(s)")
     lobby_query = db.query(models.Scrim).filter(
         models.Scrim.title == user_query.first().title)
-    return lobby_query.first()
+    players_query = db.query(models.Active).filter(
+        models.Active.title == user_query.first().title)
+    data = {
+        "lobby": lobby_query.first(),
+        "Players": players_query.all(),
+        "team_one": db.query(models.Active).filter(
+            models.Active.title == user_query.first().title).filter(models.Active.team == 1).all(),
+        "team_two": db.query(models.Active).filter(
+            models.Active.title == user_query.first().title).filter(models.Active.team == 2).all(),
+    }
+    return data
 
 
-@ router.put("/user/actions/scrim/", status_code=status.HTTP_200_OK)
-def switch_team(user: schemas.UserQuery, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    updated_user = {k: v for k, v in user.dict().items() if v is not None}
-    if not updated_user:
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
+@ router.post("/user/actions/scrim/", status_code=status.HTTP_200_OK)
+def switch_team(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     user_query = db.query(models.Active).filter(
-        models.Active.user_id == current_user.id
+        models.Active.id == current_user.id
     )
     if not user_query.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="Could not locate user in active games")
-    user_query.update(updated_user, synchronize_session=False)
-
+    team_select = {1: {"team": 2}, 2: {"team": 1}}
+    if user_query.first().team is None:
+        new_team = team_select[1]
+    else:
+        new_team = team_select[user_query.first().team]
+    user_query.update(
+        new_team, synchronize_session=False)
     db.commit()
-    print(user_query.first().team)
-    return
+    return user_query.first()

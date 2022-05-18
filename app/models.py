@@ -34,7 +34,7 @@ class Scrim(Base):
 
 class Active(Base):
     __tablename__ = "active_users"
-    user_id = Column(Integer, ForeignKey(
+    id = Column(Integer, ForeignKey(
         "users.id", ondelete="CASCADE"), nullable=False, primary_key=True)
     username = Column(String, ForeignKey(
         "users.username", ondelete="CASCADE"), nullable=False)

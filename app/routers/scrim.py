@@ -26,23 +26,25 @@ def get_all_scrims(db: Session = Depends(get_db)):
 @router.get("/scrim/{title}", status_code=status.HTTP_200_OK)
 async def get_single_scrim(title, request: Request, db: Session = Depends(get_db)):
     if title:
-        scrim_query = db.query(models.Scrim).filter(
+        lobby_query = db.query(models.Scrim).filter(
             models.Scrim.title == title)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
-    if not scrim_query.first():
+    if not lobby_query.first():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="no lobbies")
-    players_query = db.query(models.Active).filter(
+    user_query = db.query(models.Active).filter(
         models.Active.title == title)
 
     data = {
-        "lobby": scrim_query.first(),
-        "Players": players_query.all(),
-        "team_one": players_query.filter(models.Active.team == 1).all(),
-        "team_two": players_query.filter(models.Active.team == 2).all(),
+        "lobby": lobby_query.first(),
+        "Players": user_query.all(),
+        "team_one": db.query(models.Active).filter(
+            models.Active.title == user_query.first().title).filter(models.Active.team == 1).all(),
+        "team_two": db.query(models.Active).filter(
+            models.Active.title == user_query.first().title).filter(models.Active.team == 2).all(),
     }
-
+    print(data)
     return data
 
 
@@ -58,7 +60,7 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
     db.query(models.Scrim).filter(
         models.Scrim.owner_id == current_user.id).delete()
     db.query(models.Active).filter(
-        models.Active.user_id == current_user.id).delete()
+        models.Active.id == current_user.id).delete()
 
     db.commit()
     new_scrim = models.Scrim(owner_id=current_user.id,
@@ -86,7 +88,7 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"{e}")
 
     new_active = models.Active(
-        title=new_scrim.title, user_id=current_user.id, username=current_user.username, steam64=current_user.steam64, team=1)
+        title=new_scrim.title, id=current_user.id, username=current_user.username, steam64=current_user.steam64, team=1)
     db.add(new_active)
     db.commit()
     return
@@ -108,13 +110,13 @@ def join_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_user
     if len(active_query.all()) >= 10:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="lobby is full")
-    if active_query.filter(models.Active.user_id == current_user.id).first():
+    if active_query.filter(models.Active.id == current_user.id).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="user already in a lobby")
     user = db.query(models.User).filter(
         models.User.id == current_user.id).first()
     new_active = models.Active(
-        title=scrim.title, user_id=current_user.id, username=user.username, steam64=user.steam64)
+        title=scrim.title, id=current_user.id, username=user.username, steam64=user.steam64)
     db.add(new_active)
     db.commit()
     db.refresh(new_active)
@@ -127,7 +129,7 @@ def leave_scrim(db: Session = Depends(get_db), current_user: int = Depends(oauth
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="login failure")
     lobby_query = db.query(models.Active).filter(
-        models.Active.user_id == current_user.id)
+        models.Active.id == current_user.id)
     found_in = lobby_query.first()
     if not found_in:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
@@ -143,24 +145,24 @@ def leave_scrim(db: Session = Depends(get_db), current_user: int = Depends(oauth
 
 
 @router.put("/scrim/update", status_code=status.HTTP_200_OK)
-async def update_lobby(scrim: schemas.Scrim, request: Request, db: Session = Depends(get_db)):
+async def update_lobby(scrim: schemas.Scrim, current_user: int = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
     new_scrim = {k: v for k, v in scrim.dict().items()
                  if k == "team_one" or k == "team_two" or v != None}
 
+    players_query = db.query(models.Active).filter(
+        models.Active.id == current_user.id)
+    if not players_query.first():
+        return Response(status_code=status.HTTP_404_NOT_FOUND)
     lobby_query = db.query(models.Scrim).filter(
-        models.Scrim.title == scrim.title)
+        models.Scrim.title == players_query.first().title)
     if not lobby_query.first():
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     lobby_query.update(new_scrim, synchronize_session=False)
     db.commit()
-
-    players_query = db.query(models.Active).filter(
-        models.Active.title == lobby_query.first().title)
     data = {
         "lobby": lobby_query.first(),
         "Players": players_query.all(),
         "team_one": players_query.filter(models.Active.team == 1).all(),
         "team_two": players_query.filter(models.Active.team == 2).all(),
     }
-    print(data)
     return data
