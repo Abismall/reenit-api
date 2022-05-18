@@ -1,10 +1,10 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime
 
 
 class RegisterUser(BaseModel):
-    steam64: Optional[int]
+    steam64: str
     username: str
     password: str
 
@@ -23,12 +23,16 @@ class UserQuery(BaseModel):
 class UserOut(BaseModel):
     id: Optional[int]
     username: Optional[str]
-    #steam64: Optional[int]
+    steam64: Optional[int]
     public_state: Optional[bool]
     created_at: Optional[datetime]
 
     class Config:
         orm_mode = True
+
+
+class Steam64(BaseModel):
+    profileUrl: Any
 
 
 class UserLogin(BaseModel):

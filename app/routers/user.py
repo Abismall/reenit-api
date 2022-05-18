@@ -1,9 +1,10 @@
 from .. import schemas, utils, models, oauth2
-from fastapi import HTTPException, Response, status, Depends, APIRouter
+from fastapi import HTTPException, Response, status, Depends, APIRouter, Body
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
 from app.database import get_db
-from typing import List
+from typing import List, Any
+from .. steam.steamidParser import steam64_from_url
 router = APIRouter(
     prefix="/users",
     tags=['Users']
@@ -82,7 +83,7 @@ def delete_user(db: Session = Depends(get_db), active_user: int = Depends(oauth2
 def get_user(db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
     user_query = db.query(models.User).filter(
         models.User.id == active_user.id)
-
+    print(active_user.id)
     if not user_query.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"no user(s)")
@@ -138,3 +139,14 @@ def switch_team(db: Session = Depends(get_db), current_user: int = Depends(oauth
         new_team, synchronize_session=False)
     db.commit()
     return user_query.first()
+
+
+@ router.post("/user/actions/verify/", status_code=status.HTTP_200_OK)
+async def verify_steam(url: dict):
+    try:
+        steam64 = steam64_from_url(url["url"])
+        print(steam64)
+        data = {"steam64": steam64}
+        return data
+    except:
+        return Response(status.HTTP_400_BAD_REQUEST)

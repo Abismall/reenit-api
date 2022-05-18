@@ -14,9 +14,7 @@ router = APIRouter(
 
 @router.get("/scrims/", status_code=status.HTTP_200_OK)
 def get_all_scrims(db: Session = Depends(get_db)):
-    scrim_query = db.query(models.Scrim, func.count(models.Active.title).label("players")).join(
-        models.Active, models.Active.title == models.Scrim.title, isouter=True).group_by(models.Scrim.id)
-
+    scrim_query = db.query(models.Scrim)
     if not scrim_query.first():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="no lobbies")
@@ -44,7 +42,6 @@ async def get_single_scrim(title, request: Request, db: Session = Depends(get_db
         "team_two": db.query(models.Active).filter(
             models.Active.title == user_query.first().title).filter(models.Active.team == 2).all(),
     }
-    print(data)
     return data
 
 
@@ -166,3 +163,23 @@ async def update_lobby(scrim: schemas.Scrim, current_user: int = Depends(oauth2.
         "team_two": players_query.filter(models.Active.team == 2).all(),
     }
     return data
+
+
+@router.put("/scrim/update/switch", status_code=status.HTTP_200_OK)
+async def move_players(user_id_list: list, int=Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+    team_select = {1: {"team": 2}, 2: {"team": 1}}
+    try:
+        for user_id in user_id_list:
+            user_query = db.query(models.Active).filter(
+                models.Active.id == user_id
+            )
+
+            if user_query.first().team is None:
+                new_team = team_select[1]
+            else:
+                new_team = team_select[user_query.first().team]
+            user_query.update(
+                new_team, synchronize_session=False)
+            db.commit()
+    except:
+        pass
