@@ -4,6 +4,7 @@ from sqlalchemy import exc
 from sqlalchemy.orm import Session
 from app.database import get_db
 from typing import List, Any
+import requests
 from .. steam.steamidParser import steam64_from_url
 router = APIRouter(
     prefix="/users",
@@ -139,6 +140,21 @@ def switch_team(db: Session = Depends(get_db), current_user: int = Depends(oauth
         new_team, synchronize_session=False)
     db.commit()
     return user_query.first()
+
+
+@ router.get("/user/actions/steamprofile", status_code=status.HTTP_200_OK)
+async def verify_steam(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    user_query = db.query(models.User).filter(
+        models.User.id == current_user.id)
+    steam64 = user_query.first().steam64
+
+    data = requests.get(
+        f"http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=7BF81648CA090CDC4D84E509AEA6E46F&steamids={steam64}")
+    try:
+        data.json()["response"]["players"][0]
+        return data.json()["response"]["players"][0]
+    except:
+        return None
 
 
 @ router.post("/user/actions/verify/", status_code=status.HTTP_200_OK)

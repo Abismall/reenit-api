@@ -11,7 +11,8 @@ class Scrim(Base):
 
     id = Column(Integer, primary_key=True, nullable=False)
     title = Column(String, nullable=False, unique=True)
-    public_state = Column(Boolean, server_default='TRUE', nullable=False)
+    public_state = Column(Boolean, server_default='TRUE', nullable=True)
+    active = Column(Boolean, server_default='FALSE', nullable=True)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text('now()'))
     owner_id = Column(Integer, ForeignKey(

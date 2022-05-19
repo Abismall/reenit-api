@@ -52,6 +52,7 @@ class TokenData(BaseModel):
 class Scrim(BaseModel):
     id: Optional[int]
     action: Optional[int]
+    active: Optional[bool]
     title: Optional[str]
     public_state: Optional[bool]
     team_one: Optional[list]

@@ -1,13 +1,18 @@
 from fastapi import HTTPException, status, APIRouter
-from .. utils import get_servers, start_server, server_details, remove_keys
+from .. utils import get_servers, start_server, server_details, remove_keys, create_config_file, send_config_file, gather_steam64
 router = APIRouter(
     prefix="/dathost",
     tags=['Dathost']
 )
 
 
-@router.post("/start/", status_code=status.HTTP_201_CREATED)
-async def start_dathost_server(server_id: str):
+@router.post("/start/{server_id}", status_code=status.HTTP_201_CREATED)
+async def start_dathost_server(server_id: str, data: dict):
+    details = server_details(server_id).json()
+    team1_steamIDs, team2_steamIDs = gather_steam64(data["Players"])
+    config = create_config_file([data["lobby"]["current_map"]], data["lobby"]["id"], team1_steamIDs,
+                                team2_steamIDs, data["lobby"]["captain_one"], data["lobby"]["captain_two"])
+    send_config_file(config, details["ip"], server_id, details["ftp_password"])
     server_call = start_server(server_id)
     if server_call.status_code == status.HTTP_200_OK:
         return
@@ -27,7 +32,7 @@ async def dathost_servers():
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@router.get("/details/", status_code=status.HTTP_200_OK)
+@router.get("/details/{server_id}", status_code=status.HTTP_200_OK)
 async def dathost_server_details(server_id: str):
     details = server_details(server_id)
     if details.status_code == status.HTTP_200_OK:
