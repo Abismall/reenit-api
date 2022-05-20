@@ -13,7 +13,7 @@ class UpdateUser(BaseModel):
     username: Optional[str]
     password: Optional[str]
     public_state: Optional[bool]
-    steam64: Optional[int]
+    steam64: Optional[str]
 
 
 class UserQuery(BaseModel):
@@ -23,7 +23,7 @@ class UserQuery(BaseModel):
 class UserOut(BaseModel):
     id: Optional[int]
     username: Optional[str]
-    steam64: Optional[int]
+    steam64: Optional[str]
     public_state: Optional[bool]
     created_at: Optional[datetime]
 

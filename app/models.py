@@ -39,7 +39,7 @@ class Active(Base):
         "users.id", ondelete="CASCADE"), nullable=False, primary_key=True)
     username = Column(String, ForeignKey(
         "users.username", ondelete="CASCADE"), nullable=False)
-    steam64 = Column(BigInteger, ForeignKey(
+    steam64 = Column(String, ForeignKey(
         "users.steam64", ondelete="CASCADE"), nullable=False)
     title = Column(String, ForeignKey(
         "open_scrims.title", ondelete="CASCADE"), nullable=False, primary_key=True)
@@ -49,7 +49,7 @@ class Active(Base):
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
-    steam64 = Column(BigInteger, unique=True, nullable=True)
+    steam64 = Column(String, unique=True, nullable=True)
     username = Column(String(100), nullable=False, unique=True)
     password = Column(String(200))
     public_state = Column(Boolean, server_default='True')

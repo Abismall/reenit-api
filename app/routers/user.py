@@ -40,7 +40,7 @@ def update_user(user: schemas.UpdateUser, db: Session = Depends(get_db), active_
     updated_user = {k: v for k, v in user.dict().items() if v is not None}
     if not updated_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
-    if active_user == None:
+    if not active_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
     user_query = db.query(models.User).filter(models.User.id == active_user.id)
@@ -63,7 +63,7 @@ def update_user(user: schemas.UpdateUser, db: Session = Depends(get_db), active_
 
 @router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
-    if active_user == None:
+    if not active_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
     user_query = db.query(models.User).filter(models.User.id == active_user.id)
@@ -82,9 +82,10 @@ def delete_user(db: Session = Depends(get_db), active_user: int = Depends(oauth2
 
 @router.get("/user", response_model=schemas.UserOut, status_code=status.HTTP_200_OK)
 def get_user(db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
+    if not active_user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     user_query = db.query(models.User).filter(
         models.User.id == active_user.id)
-    print(active_user.id)
     if not user_query.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"no user(s)")
@@ -103,6 +104,8 @@ def get_users(db: Session = Depends(get_db)):
 
 @ router.get("/user/current", status_code=status.HTTP_200_OK)
 def get_current_game(db: Session = Depends(get_db), active_user: int = Depends(oauth2.get_current_user)):
+    if not active_user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     user_query = db.query(models.Active).filter(
         models.Active.id == active_user.id)
     if not user_query.first():
@@ -125,6 +128,8 @@ def get_current_game(db: Session = Depends(get_db), active_user: int = Depends(o
 
 @ router.post("/user/actions/scrim/", status_code=status.HTTP_200_OK)
 def switch_team(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     user_query = db.query(models.Active).filter(
         models.Active.id == current_user.id
     )
@@ -144,6 +149,8 @@ def switch_team(db: Session = Depends(get_db), current_user: int = Depends(oauth
 
 @ router.get("/user/actions/steamprofile", status_code=status.HTTP_200_OK)
 async def verify_steam(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     user_query = db.query(models.User).filter(
         models.User.id == current_user.id)
     steam64 = user_query.first().steam64

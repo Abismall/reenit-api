@@ -50,7 +50,7 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
     if len(scrim.title) == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="No title")
-    if current_user == None:
+    if not current_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
 
@@ -93,7 +93,7 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
 
 @ router.post("/scrim/", status_code=status.HTTP_200_OK)
 def join_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    if current_user == None:
+    if not current_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="not logged in")
     active_query = db.query(models.Active).filter(
@@ -122,7 +122,7 @@ def join_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_user
 
 @router.delete("/", status_code=status.HTTP_200_OK)
 def leave_scrim(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    if current_user == None:
+    if not current_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="login failure")
     lobby_query = db.query(models.Active).filter(
@@ -143,6 +143,8 @@ def leave_scrim(db: Session = Depends(get_db), current_user: int = Depends(oauth
 
 @router.put("/scrim/update", status_code=status.HTTP_200_OK)
 async def update_lobby(scrim: schemas.Scrim, current_user: int = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+    if not current_user:
+        raise Exception(status_code=status.HTTP_403_FORBIDDEN)
     new_scrim = {k: v for k, v in scrim.dict().items()
                  if k == "team_one" or k == "team_two" or v != None}
 
@@ -166,7 +168,9 @@ async def update_lobby(scrim: schemas.Scrim, current_user: int = Depends(oauth2.
 
 
 @router.put("/scrim/update/switch", status_code=status.HTTP_200_OK)
-async def move_players(user_id_list: list, int=Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+async def move_players(user_id_list: list, current_user: int = Depends(oauth2.get_current_user), db: Session = Depends(get_db)):
+    if not current_user:
+        raise Exception(status_code=status.HTTP_403_FORBIDDEN)
     team_select = {1: {"team": 2}, 2: {"team": 1}}
     try:
         for user_id in user_id_list:

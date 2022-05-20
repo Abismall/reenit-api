@@ -12,6 +12,7 @@ async def start_dathost_server(server_id: str, data: dict):
     team1_steamIDs, team2_steamIDs = gather_steam64(data["Players"])
     config = create_config_file([data["lobby"]["current_map"]], data["lobby"]["id"], team1_steamIDs,
                                 team2_steamIDs, data["lobby"]["captain_one"], data["lobby"]["captain_two"])
+    print(team2_steamIDs, team1_steamIDs)
     send_config_file(config, details["ip"], server_id, details["ftp_password"])
     server_call = start_server(server_id)
     if server_call.status_code == status.HTTP_200_OK:

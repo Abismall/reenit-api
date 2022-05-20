@@ -106,6 +106,7 @@ def send_config_file(configs, host, ftp_user, ftp_password):
     try:
         with ftplib.FTP(host, ftp_user, ftp_password, timeout=30) as ftp:
             ftp.login
+            print(ftp)
             ftp.storbinary('STOR reenit_match_configs.json', configs)
             return True
     except ftplib.all_errors as err:
