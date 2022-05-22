@@ -4,7 +4,6 @@ from datetime import datetime
 
 
 class RegisterUser(BaseModel):
-    steam64: str
     username: str
     password: str
 
@@ -14,6 +13,7 @@ class UpdateUser(BaseModel):
     password: Optional[str]
     public_state: Optional[bool]
     steam64: Optional[str]
+    profile_list: Optional[list]
 
 
 class UserQuery(BaseModel):
@@ -26,6 +26,7 @@ class UserOut(BaseModel):
     steam64: Optional[str]
     public_state: Optional[bool]
     created_at: Optional[datetime]
+    profile_list: Optional[list]
 
     class Config:
         orm_mode = True

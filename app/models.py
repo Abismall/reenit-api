@@ -55,6 +55,8 @@ class User(Base):
     public_state = Column(Boolean, server_default='True')
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('now()'))
+    profile_list = Column(MutableList.as_mutable(PickleType),
+                          default=[])
 
 
 class Server(Base):

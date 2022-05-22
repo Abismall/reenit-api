@@ -168,7 +168,6 @@ async def verify_steam(db: Session = Depends(get_db), current_user: int = Depend
 async def verify_steam(url: dict):
     try:
         steam64 = steam64_from_url(url["url"])
-        print(steam64)
         data = {"steam64": steam64}
         return data
     except:
