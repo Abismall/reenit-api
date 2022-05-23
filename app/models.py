@@ -28,9 +28,6 @@ class Scrim(Base):
     current_map = Column(String, nullable=True, default="De_dust2")
     overtime = Column(Boolean, nullable=True, default=False)
     team_damage = Column(Boolean, nullable=True, default=True)
-    server_id = Column(String, unique=True, nullable=False, default="None")
-    history = Column(MutableList.as_mutable(PickleType),
-                     default=[])
 
 
 class Active(Base):
@@ -55,8 +52,6 @@ class User(Base):
     public_state = Column(Boolean, server_default='True')
     created_at = Column(TIMESTAMP(timezone=True),
                         server_default=text('now()'))
-    profile_list = Column(MutableList.as_mutable(PickleType),
-                          default=[])
 
 
 class Server(Base):

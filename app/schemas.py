@@ -13,7 +13,6 @@ class UpdateUser(BaseModel):
     password: Optional[str]
     public_state: Optional[bool]
     steam64: Optional[str]
-    profile_list: Optional[list]
 
 
 class UserQuery(BaseModel):
@@ -26,7 +25,6 @@ class UserOut(BaseModel):
     steam64: Optional[str]
     public_state: Optional[bool]
     created_at: Optional[datetime]
-    profile_list: Optional[list]
 
     class Config:
         orm_mode = True
@@ -64,7 +62,6 @@ class Scrim(BaseModel):
     current_map: Optional[str]
     overtime: Optional[bool]
     team_damage: Optional[bool]
-    server_id: Optional[str]
     history: Optional[list]
 
 

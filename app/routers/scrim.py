@@ -77,8 +77,7 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
         db.query(models.Scrim).filter(
             models.Scrim.owner_id == current_user.id).delete()
         db.add(new_scrim)
-        raise HTTPException(status_code=status.HTTP_205_RESET_CONTENT,
-                            detail="lobby id/title already exists")
+        db.commit()
     except exc.SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(
