@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, BigInteger, ForeignKey, PickleType
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, PickleType
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import text
@@ -28,6 +28,8 @@ class Scrim(Base):
     current_map = Column(String, nullable=True, default="De_dust2")
     overtime = Column(Boolean, nullable=True, default=False)
     team_damage = Column(Boolean, nullable=True, default=True)
+    server_id = Column(String, nullable=True, default="")
+    server_address = Column(PickleType, nullable=True, default=False)
 
 
 class Active(Base):

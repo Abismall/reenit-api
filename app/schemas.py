@@ -63,6 +63,8 @@ class Scrim(BaseModel):
     overtime: Optional[bool]
     team_damage: Optional[bool]
     history: Optional[list]
+    server_address: Optional[Any]
+    server_id: Optional[str]
 
 
 class PostScrim(BaseModel):

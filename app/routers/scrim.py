@@ -18,7 +18,15 @@ def get_all_scrims(db: Session = Depends(get_db)):
     if not scrim_query.first():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="no lobbies")
-    return scrim_query.all()
+    data = []
+    for scrim in scrim_query.all():
+        scrim.team_one = db.query(models.Active).filter(
+            models.Active.title == scrim.title).filter(models.Active.team == 1).all()
+        scrim.team_two = db.query(models.Active).filter(
+            models.Active.title == scrim.title).filter(models.Active.team == 2).all()
+        scrim.player_count = len(scrim.team_one) + len(scrim.team_two)
+        data.append(scrim)
+    return data
 
 
 @router.get("/scrim/{title}", status_code=status.HTTP_200_OK)
@@ -90,6 +98,25 @@ def create_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_us
     return
 
 
+@router.get("/scrims/{id}", status_code=status.HTTP_200_OK)
+def get_by_id(id: int, db: Session = Depends(get_db)):
+    lobby_query = db.query(models.Scrim).filter(models.Scrim.id == id).first()
+    if not lobby_query:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    players_query = db.query(models.Active).filter(
+        models.Active.title == lobby_query.title)
+    data = {
+        "lobby": lobby_query,
+        "Players": players_query.all(),
+        "team_one": db.query(models.Active).filter(
+            models.Active.title == lobby_query.title).filter(models.Active.team == 1).all(),
+        "team_two": db.query(models.Active).filter(
+            models.Active.title == lobby_query.title).filter(models.Active.team == 2).all(),
+    }
+    return data
+
+
 @ router.post("/scrim/", status_code=status.HTTP_200_OK)
 def join_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     if not current_user:
@@ -145,8 +172,7 @@ async def update_lobby(scrim: schemas.Scrim, current_user: int = Depends(oauth2.
     if not current_user:
         raise Exception(status_code=status.HTTP_403_FORBIDDEN)
     new_scrim = {k: v for k, v in scrim.dict().items()
-                 if k == "team_one" or k == "team_two" or v != None}
-
+                 if k == "team_one" or k == "team_two" or k == "server_address" or v != None}
     players_query = db.query(models.Active).filter(
         models.Active.id == current_user.id)
     if not players_query.first():
