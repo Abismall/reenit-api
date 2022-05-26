@@ -49,22 +49,16 @@ async def status_update(request: Request, db: Session = Depends(get_db)):
     match_id = data["matchid"]
     event = data["event"]
     if event in match_end_events:
-        server_query = db.query(models.Server).filter(
-            models.Server.id == int(match_id))
-        server = server_query.first()
-        if not server:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="could not match id with a server")
+        scrim_query = db.query(models.Scrim).filter(
+            models.Scrim.id == int(match_id)).first()
+
         try:
-            requests.post(f"https://dathost.net/api/0.1/game-servers/{server.server_id}/stop", auth=(
+            requests.post(f"https://dathost.net/api/0.1/game-servers/{scrim_query.server_id}/stop", auth=(
                 settings.dathost_username, settings.dathost_password))
         except requests.exceptions.RequestException as err:
             print(f"Requests error: {err}")
         except requests.exceptions.HTTPError as err:
             print(f"Requests error: {err}")
         finally:
-            scrim_query = db.query(models.Scrim).filter(
-                models.Scrim.id == int(match_id))
             scrim_query.delete(synchronize_session=False)
-            server_query.delete(synchronize_session=False)
-            db.commit()
+        db.commit()
