@@ -56,15 +56,15 @@ class User(Base):
                         server_default=text('now()'))
 
 
-class Server(Base):
-    __tablename__ = "active_servers"
-    id = Column(Integer, ForeignKey("open_scrims.id",
-                ondelete="CASCADE"), primary_key=True, nullable=False)
-    server_id = Column(String, ForeignKey(
-        "open_scrims.server_id", ondelete="CASCADE"), unique=True)
-    location = Column(String(100), nullable=False)
-    players = Column(MutableList.as_mutable(PickleType),
-                     default=[])
+# class Server(Base):
+#     __tablename__ = "active_servers"
+#     id = Column(Integer, ForeignKey("open_scrims.id",
+#                 ondelete="CASCADE"), primary_key=True, nullable=False)
+#     server_id = Column(String, ForeignKey(
+#         "open_scrims.server_id", ondelete="CASCADE"), unique=True)
+#     location = Column(String(100), nullable=False)
+#     players = Column(MutableList.as_mutable(PickleType),
+#                      default=[])
 
 
 # class Location(Base):
