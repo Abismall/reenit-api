@@ -50,10 +50,11 @@ async def status_update(request: Request, db: Session = Depends(get_db)):
     event = data["event"]
     if event in match_end_events:
         scrim_query = db.query(models.Scrim).filter(
-            models.Scrim.id == int(match_id)).first()
+            models.Scrim.id == int(match_id))
 
         try:
-            requests.post(f"https://dathost.net/api/0.1/game-servers/{scrim_query.server_id}/stop", auth=(
+            id = scrim_query.first().server_id
+            requests.post(f"https://dathost.net/api/0.1/game-servers/{id}/stop", auth=(
                 settings.dathost_username, settings.dathost_password))
         except requests.exceptions.RequestException as err:
             print(f"Requests error: {err}")
