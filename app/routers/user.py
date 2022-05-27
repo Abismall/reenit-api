@@ -148,7 +148,7 @@ def switch_team(db: Session = Depends(get_db), current_user: int = Depends(oauth
 
 
 @ router.get("/user/actions/steamprofile", status_code=status.HTTP_200_OK)
-async def verify_steam(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+async def get_steam_for_user(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     if not current_user:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     user_query = db.query(models.User).filter(
@@ -157,6 +157,20 @@ async def verify_steam(db: Session = Depends(get_db), current_user: int = Depend
 
     data = requests.get(
         f"http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=7BF81648CA090CDC4D84E509AEA6E46F&steamids={steam64}")
+    try:
+        data.json()["response"]["players"][0]
+        return data.json()["response"]["players"][0]
+    except:
+        return None
+
+
+@ router.get("/user/actions/steamprofile/{id}", status_code=status.HTTP_200_OK)
+async def get_steam_by_id(id: str, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    data = requests.get(
+        f"http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=7BF81648CA090CDC4D84E509AEA6E46F&steamids={id}")
     try:
         data.json()["response"]["players"][0]
         return data.json()["response"]["players"][0]
