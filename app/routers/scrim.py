@@ -146,6 +146,26 @@ def join_scrim(scrim: schemas.Scrim, db: Session = Depends(get_db), current_user
     return new_active
 
 
+@router.delete("/{id}", status_code=status.HTTP_200_OK)
+def remove_user(id: int, db: Session = Depends(get_db)):
+    lobby_query = db.query(models.Active).filter(
+        models.Active.id == id)
+    found_in = lobby_query.first()
+    if not found_in:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="not in a lobby")
+    owner_query = db.query(models.Scrim).filter(
+        models.Scrim.owner_id == id)
+    title = owner_query.first().title
+    if owner_query.first():
+        owner_query.delete(synchronize_session=False)
+        db.commit()
+    lobby_query.delete(synchronize_session=False)
+    db.commit()
+    data = {"title": title}
+    return data
+
+
 @router.delete("/", status_code=status.HTTP_200_OK)
 def leave_scrim(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     if not current_user:
